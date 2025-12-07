@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="SIM_TOOLBOX_LOGO.png" alt="SimToolBox Logo" width="400" style="border-radius: 20px;" />
+</p>
+
 # SimToolBox
 
 A collection of interconnected financial simulation tools for learning, testing, and demonstrating modern payment and banking infrastructure.
