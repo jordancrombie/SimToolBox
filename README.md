@@ -15,6 +15,7 @@ Experience the full ecosystem in action:
 | **Banking App** | [banksim.ca](https://banksim.ca) | Create accounts, manage cards, transfer funds |
 | **Store** | [ssim.banksim.ca](https://ssim.banksim.ca) | Shop and checkout with card or wallet payments |
 | **Wallet** | [wsim.banksim.ca](https://wsim.banksim.ca) | Enroll cards and pay like Apple Pay |
+| **Mobile Wallet** | iOS/Android App | Biometric payment approval from your phone |
 | **Admin** | [admin.banksim.ca](https://admin.banksim.ca) | Manage users, accounts, and settings |
 
 ## Architecture
@@ -33,6 +34,12 @@ Experience the full ecosystem in action:
             │    WSIM     │
             │   Wallet    │
             │  Simulator  │
+            └──────┬──────┘
+                   │
+            ┌──────┴──────┐
+            │    MWSIM    │
+            │   Mobile    │
+            │   Wallet    │
             └─────────────┘
 ```
 
@@ -190,8 +197,50 @@ Digital wallet aggregator—like Apple Pay or Google Pay for the simulation ecos
 
 ---
 
+## MWSIM - Mobile Wallet Simulator
+
+**Repository:** [github.com/jordancrombie/mwsim](https://github.com/jordancrombie/mwsim)
+
+A React Native mobile wallet app (iOS/Android) that extends WSIM with native mobile capabilities.
+
+### Authentication & Security
+- Device-based authentication with unique device binding
+- Email verification and password login
+- Biometric setup (Face ID, Touch ID) for payment authorization
+- JWT tokens with secure storage (Keychain/Keystore)
+- Automatic token refresh with rotation
+
+### Bank Enrollment
+- Browse and enroll cards from multiple banking simulators
+- OAuth 2.0 enrollment via system browser (Safari/Chrome)
+- Deep link callback handling (`mwsim://enrollment/callback`)
+- Automatic card import after successful enrollment
+
+### Wallet Management
+- View all enrolled cards with card type and bank info
+- Set default payment card
+- Remove cards from wallet
+- Pull-to-refresh synchronization
+- Offline support with cached card data
+
+### Mobile Payment Flow
+- Deep link payment requests from merchants (`mwsim://payment/:requestId`)
+- Payment approval screen with merchant details and amount
+- Biometric confirmation required for all payments
+- Browser-aware return (opens original browser: Safari, Chrome, Firefox, Edge)
+- Seamless checkout completion back at merchant
+
+### Developer Tools
+- Environment switching (Dev/Production) via iOS Settings
+- Visual environment indicator badge
+- Device reset for testing
+- Debug logging for API calls
+
+---
+
 ## How They Work Together
 
+### Web Checkout Flow
 1. **User creates an account at BSIM** → Gets bank accounts and credit cards
 2. **User enrolls cards in WSIM** → Cards aggregated in digital wallet
 3. **User shops at SSIM** → Browses products, adds to cart
@@ -199,6 +248,15 @@ Digital wallet aggregator—like Apple Pay or Google Pay for the simulation ecos
 5. **SSIM sends authorization to NSIM** → Network routes to BSIM
 6. **BSIM validates and authorizes** → Response flows back through NSIM
 7. **SSIM captures payment** → Order complete, webhooks fire
+
+### Mobile Wallet Flow
+1. **User installs MWSIM app** → Creates account or logs in
+2. **User enrolls cards via OAuth** → System browser opens BSIM for card selection
+3. **Cards sync to mobile wallet** → Ready for payments
+4. **User shops at SSIM on mobile** → Chooses "Pay with Mobile Wallet"
+5. **Deep link opens MWSIM** → Payment details displayed with card selector
+6. **User approves with biometrics** → Face ID or Touch ID confirms payment
+7. **Browser-aware return** → User returns to original browser with order confirmed
 
 ---
 
@@ -219,9 +277,10 @@ All projects share a common technical foundation:
 | Layer | Technology |
 |-------|------------|
 | **Backend** | Node.js, Express, TypeScript |
-| **Frontend** | Next.js, React, Tailwind CSS |
+| **Web Frontend** | Next.js, React, Tailwind CSS |
+| **Mobile** | React Native, Expo SDK 54, TypeScript |
 | **Database** | PostgreSQL with Prisma ORM |
-| **Auth** | OAuth 2.0/OIDC, WebAuthn/Passkeys, JWT |
+| **Auth** | OAuth 2.0/OIDC, WebAuthn/Passkeys, JWT, Biometrics |
 | **Infrastructure** | Docker, Docker Compose, nginx |
 | **Cloud** | AWS ECS Fargate, ElastiCache Redis, S3 |
 | **Testing** | Jest (462+ unit tests), Playwright (76+ E2E tests) |
@@ -236,6 +295,7 @@ Each project has detailed setup instructions. Recommended order:
 2. **[NSIM](https://github.com/jordancrombie/nsim)** - Deploy the payment network
 3. **[SSIM](https://github.com/jordancrombie/ssim)** - Launch the store
 4. **[WSIM](https://github.com/jordancrombie/wsim)** - Add wallet capabilities
+5. **[MWSIM](https://github.com/jordancrombie/mwsim)** - Mobile wallet app (iOS/Android)
 
 Or just explore the [live demo](https://banksim.ca) to see everything in action.
 
