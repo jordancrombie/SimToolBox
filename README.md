@@ -16,16 +16,17 @@ Experience the full ecosystem in action:
 | **Store** | [ssim.banksim.ca](https://ssim.banksim.ca) | Shop and checkout with card or wallet payments |
 | **Wallet** | [wsim.banksim.ca](https://wsim.banksim.ca) | Enroll cards and pay like Apple Pay |
 | **Mobile Wallet** | iOS/Android App | Biometric payment approval from your phone |
+| **Payment Terminal** | ESP32 Hardware | Point-of-sale terminal with QR code display |
 | **Admin** | [admin.banksim.ca](https://admin.banksim.ca) | Manage users, accounts, and settings |
 
 ## Architecture
 
 ```
-┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│    BSIM     │     │    NSIM     │     │    SSIM     │
-│   Banking   │◄───►│   Network   │◄───►│    Store    │
-│  Simulator  │     │  Simulator  │     │  Simulator  │
-└─────────────┘     └─────────────┘     └─────────────┘
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│    BSIM     │     │    NSIM     │     │    SSIM     │     │ ssimTerminal│
+│   Banking   │◄───►│   Network   │◄───►│    Store    │◄───►│   Payment   │
+│  Simulator  │     │  Simulator  │     │  Simulator  │     │  Terminal   │
+└─────────────┘     └─────────────┘     └─────────────┘     └─────────────┘
        ▲                   ▲                   ▲
        │                   │                   │
        └───────────┬───────┴───────────────────┘
@@ -238,6 +239,50 @@ A React Native mobile wallet app (iOS/Android) that extends WSIM with native mob
 
 ---
 
+## ssimTerminal - Payment Terminal
+
+**Repository:** [github.com/jordancrombie/ssimTerminal](https://github.com/jordancrombie/ssimTerminal)
+
+ESP32 firmware for a dedicated point-of-sale payment terminal that integrates with SSIM.
+
+### Hardware Platform
+- Waveshare ESP32-S3-Touch-AMOLED-1.8
+- Dual-core ESP32-S3R8 at 240MHz
+- 1.8" AMOLED touchscreen (368x448 pixels)
+- WiFi 2.4GHz and Bluetooth 5.0
+- 16MB flash, 8MB PSRAM
+
+### Core Functionality
+- WebSocket connection to SSIM server
+- QR code display for customer payments
+- Real-time transaction status updates
+- Touch-enabled user interface
+- Automatic reconnection and heartbeat
+
+### Terminal States
+- **BOOT** → Initial hardware setup
+- **WIFI_SETUP** → Network configuration via touch UI
+- **PAIRING** → First-run server authentication
+- **CONNECTING** → WebSocket establishment
+- **IDLE** → Ready for payment requests
+- **QR_DISPLAY** → Showing payment QR code
+- **RESULT** → Transaction outcome display
+
+### Communication Protocol
+- Secure WebSocket (`wss://`) with API key authentication
+- Server pushes payment requests to registered terminals
+- Terminal sends heartbeat telemetry and status updates
+- HMAC-signed message acknowledgments
+
+### Development Stack
+- PlatformIO with Arduino framework
+- LVGL 8.3.x for graphics
+- Arduino_GFX for display driver
+- QRCode library for code generation
+- ArduinoJson v7 for protocol handling
+
+---
+
 ## How They Work Together
 
 ### Web Checkout Flow
@@ -257,6 +302,15 @@ A React Native mobile wallet app (iOS/Android) that extends WSIM with native mob
 5. **Deep link opens MWSIM** → Payment details displayed with card selector
 6. **User approves with biometrics** → Face ID or Touch ID confirms payment
 7. **Browser-aware return** → User returns to original browser with order confirmed
+
+### Point of Sale Flow
+1. **Merchant sets up ssimTerminal** → Connects to WiFi and pairs with SSIM
+2. **Customer ready to pay** → Merchant initiates payment on SSIM
+3. **Terminal displays QR code** → Payment amount and QR shown on AMOLED screen
+4. **Customer scans with MWSIM** → Opens payment approval in mobile wallet
+5. **Customer approves with biometrics** → Face ID or Touch ID confirms
+6. **Terminal shows result** → Success/failure displayed in real-time
+7. **Ready for next transaction** → Terminal returns to idle state
 
 ---
 
@@ -279,6 +333,7 @@ All projects share a common technical foundation:
 | **Backend** | Node.js, Express, TypeScript |
 | **Web Frontend** | Next.js, React, Tailwind CSS |
 | **Mobile** | React Native, Expo SDK 54, TypeScript |
+| **Embedded** | ESP32-S3, PlatformIO, Arduino, LVGL |
 | **Database** | PostgreSQL with Prisma ORM |
 | **Auth** | OAuth 2.0/OIDC, WebAuthn/Passkeys, JWT, Biometrics |
 | **Infrastructure** | Docker, Docker Compose, nginx |
@@ -296,6 +351,7 @@ Each project has detailed setup instructions. Recommended order:
 3. **[SSIM](https://github.com/jordancrombie/ssim)** - Launch the store
 4. **[WSIM](https://github.com/jordancrombie/wsim)** - Add wallet capabilities
 5. **[MWSIM](https://github.com/jordancrombie/mwsim)** - Mobile wallet app (iOS/Android)
+6. **[ssimTerminal](https://github.com/jordancrombie/ssimTerminal)** - Hardware payment terminal (ESP32)
 
 Or just explore the [live demo](https://banksim.ca) to see everything in action.
 
